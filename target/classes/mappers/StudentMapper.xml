@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.dong.StudentMapper">
+
+
+	<!-- 출결목록 -->
+	<select id="attendance" resultType="StudentDTO">
+		select *
+		from attend
+		inner join attendance on aNum = aAttend and aNum != 1
+		inner join lecture on lectureNum = aLecNum
+		inner join user on aId = #{userId} and userId = aId
+		inner join attendCount on acId = userId
+		join codetable on pId = aConfirm
+		order by aDate desc;
+	</select>
+
+	<!-- 출결목록 (선택) -->
+	<select id="attendanceSelect" resultType="StudentDTO">
+		select *
+		from attend
+		inner join attendance on aNum = aAttend and aNum != 1 and aNum = #{aNum}
+		inner join lecture on lectureNum = aLecNum
+		inner join user on aId = #{userId} and userId = aId
+		inner join attendCount on acId = userId
+		join codetable on pId = aConfirm
+		order by aDate desc;
+	</select>
+
+	<!-- 강의정보 -->
+	<select id="information" parameterType="Map"
+		resultType="StudentDTO">
+		select *
+		from user,lecture
+		inner join userlecture on uId = #{userId}
+		where uId = userId and
+		lectureNum = ulNum and
+		lecDel = 0;
+	</select>
+
+	<!-- 강의등록 -->
+	<insert id="inforRegister" parameterType="StudentDTO">
+		insert INTO userlecture (uId, ulNum)
+		VALUES (#{uId}, #{ulNum})
+	</insert>
+
+	<!-- 근태등록페이지 -->
+	<select id="sAttendRegisterForm" parameterType="Map"
+		resultType="StudentDTO">
+		select *
+		from attend
+		inner join attendance on aAttend = aNum and aNum != 1
+		inner join lecture on lectureNum = aLecNum
+		inner join user on userId = #{userId}
+		inner join attendCount on acId = userId
+		join codetable on pId = aConfirm
+		where aId = #{userId}
+		order by aDate desc;
+	</select>
+
+	<!-- 근태등록 -->
+	<update id="sAttendRegister">
+		update attendance set realFileName =
+		#{realFileName},ranFileName=#{ranFileName} where aId = #{userId} and
+		aDate = #{aDate}
+	</update>
+
+	<!-- 강의상세 -->
+	<select id="sDetail" resultType="StudentDTO">
+		select *
+		from lecture inner join userlecture on ulNum = lectureNum
+		inner join user on userAdmin = 002 and uId = userId
+		inner join codetable on pId = 002 and pId = userAdmin
+		where lectureNum = #{lectureNum} and userAdminConfirm = 101;
+	</select>
+
+	<!-- 학생 수 카운트 -->
+	<select id="studentCnt" resultType="java.lang.Integer">
+		select count(*)
+		from userlecture inner join user on
+		userAdmin = 001 and
+		userAdminConfirm = 101 and
+		uId = userId
+		inner join lecture on ulNum = lectureNum and ulNum = #{lectureNum};
+	</select>
+
+	<!-- 근태계 조회 -->
+	<select id="sAttendDt" resultType="StudentDTO">
+		select *
+		from user
+		inner join Attendance on aId = #{userId} and aDate = #{aDate} and aId =
+		userId
+		inner join codetable on pId = aConfirm
+		inner join attend on aAttend = aNum
+	</select>
+
+	<!-- 강의 선택 리스트 -->
+	<select id="selectLecture" parameterType="Map"
+		resultType="StudentDTO">
+		select *
+		from lecture
+		inner join userlecture
+		on ulNum = lectureNum
+		and lecDel = 0
+		inner join user
+		on userId = uId and userAdmin = '002'
+		order by lectureNum asc;
+	</select>
+
+	<!-- 승인 count -->
+	<select id="con" resultType="java.lang.Integer">
+		select count(aConfirm)
+		from attendance
+		where aId = #{userId} and aAttend != 1
+		and aConfirm = 101
+	</select>
+
+	<!-- 미승인 count -->
+	<select id="notc" resultType="java.lang.Integer">
+		select count(aConfirm)
+		from attendance
+		where aId = #{userId} and aAttend != 1
+		and aConfirm = 100
+	</select>
+
+	<!-- 반려 count -->
+	<select id="den" resultType="java.lang.Integer">
+		select count(aConfirm)
+		from attendance
+		where aId = #{userId} and aAttend != 1
+		and aConfirm = 102
+	</select>
+
+	<!-- 미승인 리스트 -->
+	<select id="sAttendNotApp" resultType="StudentDTO">
+		select *
+		from attend
+		inner join attendance on aNum = aAttend and aConfirm = 100 and aNum != 1
+		inner join user on aId = #{userId} and userId = aId
+		inner join attendCount on acId = userId
+		join codetable on pId = aConfirm
+		order by aDate asc;
+	</select>
+
+	<!-- 승인 리스트 -->
+	<select id="sAttendApp" resultType="StudentDTO">
+		select *
+		from attend
+		inner join attendance on aNum = aAttend and aConfirm = 101 and aNum != 1
+		inner join user on aId = #{userId} and userId = aId
+		inner join attendCount on acId = userId
+		join codetable on pId = aConfirm
+		order by aDate asc;
+	</select>
+
+	<!-- 반려 리스트 -->
+	<select id="sAttendRef" resultType="StudentDTO">
+		select *
+		from attend
+		inner join attendance on aNum = aAttend and aConfirm = 102 and aNum != 1
+		inner join user on aId = #{userId} and userId = aId
+		inner join attendCount on acId = userId
+		join codetable on pId = aConfirm
+		order by aDate asc;
+	</select>
+
+	<!-- 출석 카운트 -->
+	<select id="att" resultType="java.lang.Integer">
+		select att
+		from attendcount
+		where acId = #{userId}
+	</select>
+	<!-- 지각 카운트 -->
+	<select id="late" resultType="java.lang.Integer">
+		select late
+		from attendcount
+		where acId = #{userId}
+	</select>
+	<!-- 조퇴 카운트 -->
+	<select id="ealry" resultType="java.lang.Integer">
+		select early
+		from attendcount
+		where acId = #{userId}
+	</select>
+	<!-- 결석 카운트 -->
+	<select id="abs" resultType="java.lang.Integer">
+		select abs
+		from attendcount
+		where acId = #{userId}
+	</select>
+
+
+
+</mapper>
+
+
+   
+   
+   
